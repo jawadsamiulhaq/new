@@ -31,6 +31,12 @@ public class StoreSettings
 
     /// <summary>IANA time zone used for opening hours.</summary>
     public string TimeZone { get; set; } = "Asia/Karachi";
+
+    /// <summary>
+    /// Set once the starting menu photos have been added, so they're never re-added
+    /// after the owner removes or replaces them.
+    /// </summary>
+    public bool DemoImagesApplied { get; set; }
 }
 
 /// <summary>

@@ -924,6 +924,9 @@ namespace BurChips.Api.Data.Migrations
                     b.Property<bool>("DeliveryEnabled")
                         .HasColumnType("bit");
 
+                    b.Property<bool>("DemoImagesApplied")
+                        .HasColumnType("bit");
+
                     b.Property<int>("EstimatedDeliveryMinutes")
                         .HasColumnType("int");
 

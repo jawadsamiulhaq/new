@@ -102,7 +102,11 @@ test('owner marks an item sold out and customers see it', async ({ page, browser
   }
 })
 
-test('pausing online orders shows customers a banner', async ({ page, browser }) => {
+test('pausing online orders shows customers a banner', async ({ page, browser, request }) => {
+  // Outside opening hours customers see "Closed" instead of the pause message.
+  const store = await (await request.get('/api/store')).json()
+  test.skip(!store.status.isOpen, 'The shop is closed right now.')
+
   await ownerLogin(page)
   await page.getByRole('switch', { name: 'Pause online orders' }).click()
   await page.getByLabel('Message for customers (optional)').fill('Back in 15 minutes')

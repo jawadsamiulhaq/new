@@ -21,4 +21,9 @@
     <PackageReference Include="System.Security.Cryptography.Pkcs" Version="10.0.13" />
   </ItemGroup>
 
+  <!-- Starting menu photos (CC0 / public domain, see credits.json), uploaded once on first start. -->
+  <ItemGroup>
+    <Content Include="Data\Seed\Images\*.webp" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
+  </ItemGroup>
+
 </Project>

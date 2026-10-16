@@ -1,4 +1,5 @@
 using BurChips.Api.Data.Entities;
+using BurChips.Api.Features.Admin;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
@@ -15,6 +16,9 @@ public class SeedOptions
 
     /// <summary>Adds example delivery areas (development only — the owner sets real ones in admin).</summary>
     public bool SampleDeliveryAreas { get; set; }
+
+    /// <summary>Adds the starting stock photos to menu items without a photo (once per database).</summary>
+    public bool DemoImages { get; set; } = true;
 }
 
 /// <summary>
@@ -25,9 +29,13 @@ public class DbSeeder(
     AppDbContext db,
     RoleManager<IdentityRole> roles,
     UserManager<AppUser> users,
+    IImageStorage images,
     IConfiguration config,
     ILogger<DbSeeder> logger)
 {
+    /// <summary>Folder (next to the app) holding the starting photos, one per item slug: <c>{slug}.webp</c>.</summary>
+    public static string DemoImageFolder => Path.Combine(AppContext.BaseDirectory, "Data", "Seed", "Images");
+
     public async Task SeedAsync(CancellationToken ct = default)
     {
         var options = config.GetSection(SeedOptions.Section).Get<SeedOptions>() ?? new SeedOptions();
@@ -38,6 +46,34 @@ public class DbSeeder(
         await SeedHoursAsync(ct);
         if (options.SampleDeliveryAreas) await SeedSampleAreasAsync(ct);
         await SeedMenuAsync(ct);
+        if (options.DemoImages) await SeedDemoImagesAsync(ct);
+    }
+
+    /// <summary>
+    /// Gives every item without a photo its matching stock photo, then remembers that this was done,
+    /// so photos the owner later removes or replaces in admin never come back.
+    /// </summary>
+    private async Task SeedDemoImagesAsync(CancellationToken ct)
+    {
+        var settings = await db.StoreSettings.FirstAsync(ct);
+        if (settings.DemoImagesApplied || !Directory.Exists(DemoImageFolder)) return;
+
+        var items = await db.MenuItems.Where(i => i.ImageUrl == null).ToListAsync(ct);
+        var added = 0;
+        foreach (var item in items)
+        {
+            var file = Path.Combine(DemoImageFolder, $"{item.Slug}.webp");
+            if (!File.Exists(file)) continue;
+
+            var bytes = await File.ReadAllBytesAsync(file, ct);
+            if (ImageValidator.Detect(bytes) is not { } kind) continue;
+            item.ImageUrl = await images.SaveAsync(bytes, kind, ct);
+            added++;
+        }
+
+        settings.DemoImagesApplied = true;
+        await db.SaveChangesAsync(ct);
+        logger.LogInformation("Added {Count} starting menu photos", added);
     }
 
     private async Task SeedRolesAsync()

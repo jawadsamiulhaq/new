@@ -130,6 +130,17 @@ check `/api/health`. Browser (Playwright) tests are run locally before releases.
   opening hours and the menu from `Data/Seed/MenuSeed.cs`. It never overwrites existing data,
   so after launch the owner manages everything from the admin panel.
 
+### Starting menu photos
+
+Every menu item starts with a stock photo from `api/BurChips.Api/Data/Seed/Images/{slug}.webp`
+(800×600 WebP). All are CC0 or public-domain images found through Openverse (mostly the WordPress Photo
+Directory). They're free for commercial use with no attribution required; sources are listed in `credits.json`.
+They show generic food, not the shop's actual dishes, so replace them with real photos in **Admin → Menu** when ready.
+
+On first start the seeder uploads them to the configured photo storage (local folder or Azure Blob) for items
+without a photo, then sets `StoreSettings.DemoImagesApplied`, so removed or replaced photos are never re-added.
+Disable with `Seed:DemoImages=false`.
+
 ### Placeholder data to replace before launch
 
 | Data | Placeholder | Where to change (once admin exists) |

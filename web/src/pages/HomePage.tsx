@@ -29,7 +29,8 @@ export function HomePage() {
               'radial-gradient(circle at 15% 20%, rgb(242 194 48 / 0.18), transparent 45%), radial-gradient(circle at 90% 80%, rgb(232 160 191 / 0.12), transparent 40%)',
           }}
         />
-        <div className="relative mx-auto max-w-6xl px-4 py-16 sm:py-24">
+        <div className="relative mx-auto grid max-w-6xl items-center gap-10 px-4 py-16 sm:py-24 lg:grid-cols-[1.15fr_1fr]">
+          <div>
           <StatusPill className="inline-flex bg-ink/60" />
           <p className="mt-6 text-xs font-bold tracking-[0.25em] text-muted uppercase sm:text-sm">
             Good food <span className="text-mustard">+</span> sweet treats <span className="text-mustard">+</span> under one roof
@@ -51,6 +52,8 @@ export function HomePage() {
               </a>
             )}
           </div>
+          </div>
+          <HeroPhotos photos={featured.filter((f) => f.item.imageUrl).slice(0, 3).map((f) => ({ src: f.item.imageUrl!, alt: f.item.name }))} loading={!menu} />
         </div>
       </section>
 
@@ -77,7 +80,7 @@ export function HomePage() {
                     'aria-hidden': true,
                   })}
                   <span className="font-display font-bold leading-tight">{c.name}</span>
-                  <span className="text-xs text-muted">{c.items.length} items</span>
+                  <span className="text-xs text-muted">{c.items.length} {c.items.length === 1 ? 'item' : 'items'}</span>
                 </Link>
               )
             })}
@@ -173,6 +176,45 @@ export function HomePage() {
             </div>
           </div>
         </section>
+      )}
+    </div>
+  )
+}
+
+/**
+ * Photo collage beside the headline on larger screens (hidden on phones to keep the first screen fast).
+ * The box has a fixed shape, so nothing moves when the photos arrive.
+ */
+function HeroPhotos({ photos, loading }: { photos: { src: string; alt: string }[]; loading: boolean }) {
+  const [main, second, third] = photos
+  if (!loading && !main) return null
+
+  return (
+    <div aria-hidden={loading} className="relative hidden aspect-square w-full max-w-md justify-self-end lg:block">
+      {loading || !main ? (
+        <div className="absolute inset-[8%] animate-pulse rounded-[2rem] bg-coal" />
+      ) : (
+        <>
+          <img
+            src={main.src}
+            alt={main.alt}
+            className="absolute inset-y-[8%] right-0 left-[12%] h-[84%] w-[88%] rotate-2 rounded-[2rem] object-cover shadow-2xl shadow-black/60 ring-4 ring-charcoal"
+          />
+          {second && (
+            <img
+              src={second.src}
+              alt={second.alt}
+              className="absolute top-0 left-0 aspect-[4/3] w-[46%] -rotate-6 rounded-2xl object-cover shadow-xl shadow-black/60 ring-4 ring-charcoal"
+            />
+          )}
+          {third && (
+            <img
+              src={third.src}
+              alt={third.alt}
+              className="absolute bottom-0 left-[4%] aspect-[4/3] w-[42%] rotate-3 rounded-2xl object-cover shadow-xl shadow-black/60 ring-4 ring-mustard"
+            />
+          )}
+        </>
       )}
     </div>
   )
