@@ -1,0 +1,6 @@
+# Store text files with LF in the repo (Windows checkouts convert as configured); keep images binary.
+* text=auto
+*.png binary
+*.jpg binary
+*.webp binary
+*.woff2 binary

@@ -1,0 +1,96 @@
+@import 'tailwindcss';
+@import '@fontsource-variable/bricolage-grotesque';
+@import '@fontsource-variable/inter';
+
+/*
+ * BurChips × Bake Dukan brand theme — matches the printed menu:
+ * charcoal panels, mustard-yellow actions, pink reserved for Bake Dukan.
+ */
+@theme {
+  --font-display: 'Bricolage Grotesque Variable', ui-sans-serif, system-ui, sans-serif;
+  --font-sans: 'Inter Variable', ui-sans-serif, system-ui, sans-serif;
+
+  --color-ink: #121212; /* page background */
+  --color-charcoal: #1a1a1a; /* panels, headers */
+  --color-coal: #262626; /* cards */
+  --color-line: #3a3a3a; /* borders, dividers */
+  --color-muted: #a3a3a3; /* secondary text */
+  --color-cream: #faf6ee; /* primary text */
+
+  --color-mustard: #f2c230; /* primary action */
+  --color-mustard-dark: #d9a917; /* hover / pressed */
+  --color-on-mustard: #1a1a1a; /* text on mustard */
+
+  --color-dukan: #e8a0bf; /* Bake Dukan accent */
+  --color-dukan-dark: #d97ea6;
+
+  --color-chart: #b38716; /* single-series bars: validated for the dark chart surface */
+
+  --color-success: #4ade80;
+  --color-danger: #f87171;
+
+  --radius-card: 1rem;
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes sheet-up {
+  from {
+    transform: translateY(100%);
+  }
+}
+
+@keyframes slide-in-right {
+  from {
+    transform: translateX(100%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 1ms !important;
+    transition-duration: 1ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+@layer base {
+  html {
+    color-scheme: dark;
+  }
+
+  body {
+    @apply bg-ink font-sans text-cream antialiased;
+  }
+
+  h1,
+  h2,
+  h3 {
+    @apply font-display tracking-tight;
+  }
+
+  :focus-visible {
+    @apply outline-2 outline-offset-2 outline-mustard;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2 rounded-full bg-mustard px-6 py-3 font-display font-bold text-on-mustard transition-colors hover:bg-mustard-dark disabled:cursor-not-allowed disabled:opacity-50;
+  }
+
+  .btn-ghost {
+    @apply inline-flex items-center justify-center gap-2 rounded-full border border-line px-5 py-2.5 font-semibold text-cream transition-colors hover:border-mustard hover:text-mustard;
+  }
+
+  /* Category heading bar, like the black labels on the printed menu */
+  .section-bar {
+    @apply inline-block rounded-lg bg-charcoal px-4 py-2 font-display text-lg font-extrabold uppercase tracking-wide text-mustard;
+  }
+}

@@ -1,0 +1,6 @@
+<Solution>
+  <Folder Name="/api/">
+    <Project Path="api/BurChips.Api.Tests/BurChips.Api.Tests.csproj" />
+    <Project Path="api/BurChips.Api/BurChips.Api.csproj" />
+  </Folder>
+</Solution>

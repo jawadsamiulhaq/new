@@ -1,0 +1,98 @@
+name: Build, test & deploy
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    services:
+      # The API's integration tests run against a real SQL Server (LocalDB on Windows dev machines).
+      sql:
+        image: mcr.microsoft.com/mssql/server:2022-latest
+        env:
+          ACCEPT_EULA: "Y"
+          MSSQL_SA_PASSWORD: ${{ secrets.CI_SQL_PASSWORD || 'Ci-Only-Passw0rd!' }}
+        ports: ["1433:1433"]
+        options: >-
+          --health-cmd "/opt/mssql-tools18/bin/sqlcmd -C -S localhost -U sa -P \"$MSSQL_SA_PASSWORD\" -Q 'SELECT 1' || exit 1"
+          --health-interval 10s --health-timeout 5s --health-retries 12
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Frontend — install, lint, unit tests
+        working-directory: web
+        run: |
+          npm ci
+          npm run lint
+          npm test
+
+      # Builds the React app into api/BurChips.Api/wwwroot so the API publishes it.
+      - name: Frontend — build
+        working-directory: web
+        run: npm run build
+
+      - name: API — tests
+        env:
+          TEST_SQL_SERVER: "Server=localhost,1433;User Id=sa;Password=${{ secrets.CI_SQL_PASSWORD || 'Ci-Only-Passw0rd!' }};TrustServerCertificate=True"
+        run: dotnet test BurChips.slnx --configuration Release
+
+      - name: API — publish
+        run: dotnet publish api/BurChips.Api/BurChips.Api.csproj --configuration Release --output publish
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: site
+          path: publish
+          retention-days: 7
+
+  deploy:
+    needs: build
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment:
+      name: production
+      url: ${{ steps.deploy.outputs.webapp-url }}
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: site
+          path: publish
+
+      # Database migrations run automatically when the app starts (Database__MigrateOnStartup=true).
+      - name: Deploy to Azure App Service
+        id: deploy
+        uses: azure/webapps-deploy@v3
+        with:
+          app-name: ${{ vars.AZURE_WEBAPP_NAME }}
+          publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
+          package: publish
+
+      - name: Smoke test
+        run: |
+          for i in $(seq 1 30); do
+            if curl -fsS "${{ steps.deploy.outputs.webapp-url }}/api/health" | grep -q Healthy; then echo "Site is healthy"; exit 0; fi
+            sleep 10
+          done
+          echo "Site did not become healthy after deploy" && exit 1
