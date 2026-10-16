@@ -129,7 +129,8 @@ public class AdminOrderTests(ApiFactory factory)
     public async Task Sales_report_counts_only_orders_that_went_through()
     {
         var owner = await factory.StaffClientAsync();
-        const string url = "/api/admin/reports/sales?from=2026-10-15&to=2026-10-15";
+        var day = ApiFactory.StartDate.ToString("yyyy-MM-dd");
+        var url = $"/api/admin/reports/sales?from={day}&to={day}";
         var before = await owner.GetFromJsonAsync<SalesReport>(url, TestJson.Options);
 
         await CustomerOrderAsync();

@@ -110,14 +110,15 @@ public class PublicApiTests(ApiFactory factory)
     public async Task Store_is_closed_outside_hours_and_says_when_it_opens()
     {
         var original = factory.Clock.GetUtcNow();
-        factory.Clock.SetUtcNow(new DateTimeOffset(2026, 10, 15, 23, 0, 0, TimeSpan.Zero)); // 4 AM Friday in Lahore
+        factory.Clock.SetUtcNow(ApiFactory.Start.AddHours(15)); // 4 AM Friday in Lahore
         try
         {
             var store = await _client.GetFromJsonAsync<StoreDto>("/api/store", Json);
 
             Assert.False(store!.Status.IsOpen);
             Assert.False(store.Status.CanOrder);
-            Assert.Equal(new DateTimeOffset(2026, 10, 16, 12, 0, 0, TimeSpan.FromHours(5)), store.Status.NextOpenAt);
+            // Friday 12:00 PM in Lahore = Thursday 08:00 UTC + 23 hours.
+            Assert.Equal(ApiFactory.Start.AddHours(23), store.Status.NextOpenAt);
         }
         finally
         {

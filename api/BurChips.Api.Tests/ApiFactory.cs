@@ -24,8 +24,24 @@ public class ApiFactory : WebApplicationFactory<Program>
     private readonly string _database = $"BurChips_Tests_{Guid.NewGuid():N}";
     private readonly string _uploads = Path.Combine(Path.GetTempPath(), $"burchips-tests-{Guid.NewGuid():N}");
 
-    /// <summary>Starts on Thursday 15 Oct 2026, 13:00 in Lahore (inside the seeded 12 PM – 2 AM hours).</summary>
-    public TestClock Clock { get; } = new(new DateTimeOffset(2026, 10, 15, 8, 0, 0, TimeSpan.Zero));
+    /// <summary>
+    /// Thursday 13:00 in Lahore (inside the seeded 12 PM – 2 AM hours), a few days in the future.
+    /// It must not be in the past: login cookies carry real expiry dates, and the test HTTP client
+    /// drops cookies that look expired by the real clock.
+    /// </summary>
+    public static readonly DateTimeOffset Start = NextThursday1PmLahore();
+
+    public TestClock Clock { get; } = new(Start);
+
+    /// <summary>The test day's date in Lahore, e.g. for report date filters.</summary>
+    public static DateOnly StartDate => DateOnly.FromDateTime(Start.ToOffset(TimeSpan.FromHours(5)).DateTime);
+
+    private static DateTimeOffset NextThursday1PmLahore()
+    {
+        var date = DateTime.UtcNow.Date.AddDays(2);
+        while (date.DayOfWeek != DayOfWeek.Thursday) date = date.AddDays(1);
+        return new DateTimeOffset(date.AddHours(8), TimeSpan.Zero); // 08:00 UTC = 13:00 PKT
+    }
 
     /// <summary>Owner alerts the app tried to send (instead of WhatsApp).</summary>
     public TestAlertSender Alerts { get; } = new();

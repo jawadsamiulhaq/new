@@ -29,15 +29,15 @@ jobs:
           --health-interval 10s --health-timeout 5s --health-retries 12
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
           node-version: 22
           cache: npm
           cache-dependency-path: web/package-lock.json
 
-      - uses: actions/setup-dotnet@v4
+      - uses: actions/setup-dotnet@v5
         with:
           dotnet-version: 10.0.x
 
@@ -56,7 +56,7 @@ jobs:
       - name: API — tests
         env:
           TEST_SQL_SERVER: "Server=localhost,1433;User Id=sa;Password=${{ secrets.CI_SQL_PASSWORD || 'Ci-Only-Passw0rd!' }};TrustServerCertificate=True"
-        run: dotnet test BurChips.slnx --configuration Release
+        run: dotnet test BurChips.slnx --configuration Release --logger GitHubActions --logger "console;verbosity=normal"
 
       - name: API — publish
         run: dotnet publish api/BurChips.Api/BurChips.Api.csproj --configuration Release --output publish

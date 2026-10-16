@@ -142,7 +142,7 @@ public class OrderTests(ApiFactory factory)
         await factory.SignInAsync(client);
 
         var start = factory.Clock.GetUtcNow();
-        factory.Clock.SetUtcNow(new DateTimeOffset(2026, 10, 15, 23, 0, 0, TimeSpan.Zero)); // 4 AM in Lahore
+        factory.Clock.SetUtcNow(ApiFactory.Start.AddHours(15)); // 4 AM Friday in Lahore
         try
         {
             Assert.Equal("closed", (await PlaceFailsAsync(client, await PickupOrderAsync())).Problems.Single().Code);
